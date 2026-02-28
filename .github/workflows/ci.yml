@@ -6,7 +6,7 @@ on:
 
 jobs:
   ci:
-    name: Lint, Test & Build
+    name: CI
     runs-on: ubuntu-latest
 
     steps:
