@@ -4,7 +4,7 @@
 > typed errors, chainable transforms, zero-config mocking.
 
 [![npm](https://img.shields.io/npm/v/@rstackio/services)](https://www.npmjs.com/package/@rstackio/services)
-[![license](https://img.shields.io/npm/l/@rstackio/services)](LICENSE)
+[![license](https://img.shields.io/npm/l/@rstackio/services)](https://github.com/rstackio/services/blob/main/LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-blue)](https://www.typescriptlang.org/)
 
 ---
@@ -37,10 +37,10 @@ A few guiding principles:
 
 | Module | Purpose | Docs |
 |--------|---------|------|
-| `data-provider` | Wrap async functions in a chainable, mockable, type-safe API | [API](src/data-provider/docs/api.docs.mdx) · [Usage](src/data-provider/docs/usage.docs.mdx) |
-| `mock` | Toggle mock mode, simulate latency, SSR-compatible state | [API](src/mock/docs/api.docs.mdx) · [Usage](src/mock/docs/usage.docs.mdx) |
-| `safe` | Wrap any function to return `[error, data]` instead of throwing | [API](src/safe/docs/api.docs.mdx) |
-| `logger` | Structured console logger, silent in production | [API](src/logger/docs/api.docs.mdx) |
+| `data-provider` | Wrap async functions in a chainable, mockable, type-safe API | [API](https://github.com/rstackio/services/blob/main/src/data-provider/docs/api.docs.mdx) · [Usage](https://github.com/rstackio/services/blob/main/src/data-provider/docs/usage.docs.mdx) |
+| `mock` | Toggle mock mode, simulate latency, SSR-compatible state | [API](https://github.com/rstackio/services/blob/main/src/mock/docs/api.docs.mdx) · [Usage](https://github.com/rstackio/services/blob/main/src/mock/docs/usage.docs.mdx) |
+| `safe` | Wrap any function to return `[error, data]` instead of throwing | [API](https://github.com/rstackio/services/blob/main/src/safe/docs/api.docs.mdx) |
+| `logger` | Structured console logger, silent in production | [API](https://github.com/rstackio/services/blob/main/src/logger/docs/api.docs.mdx) · [Usage](https://github.com/rstackio/services/blob/main/src/logger/docs/usage.docs.mdx) |
 
 ---
 
@@ -99,20 +99,12 @@ pnpm build         # build dist
 
 ## 👥 Contributors
 
-<table>
-  <tr>
-    <td align="center">
-      <a href="https://github.com/rkovalov">
-        <img src="https://github.com/rkovalov.png" width="80" alt="rkovalov" style="border-radius:50%"/><br/>
-        <sub><b>Rudolf Kovalov</b></sub>
-      </a><br/>
-      <sub>author · maintainer</sub>
-    </td>
-  </tr>
-</table>
+Amazing people who made their contributions. Feel free to contribute!
+
+<a href="https://github.com/rstackio/services/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=rstackio/services" />
+</a>
 
 ---
 
-## License
-
-MIT
+## License: [MIT](https://github.com/rstackio/services/blob/main/LICENSE)
