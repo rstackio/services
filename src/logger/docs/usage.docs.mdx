@@ -5,7 +5,7 @@
 Create a logger at the top of each file with a meaningful prefix:
 
 ```ts
-import { Logger } from 'data-provider/logger';
+import { Logger } from '@rstackio/services/logger';
 
 const logger = new Logger({ prefix: 'UserService' });
 
@@ -28,8 +28,8 @@ export async function createUser(data: CreateUserInput) {
 ## With `createSafeProvider`
 
 ```ts
-import { createSafeProvider } from 'data-provider/data-provider';
-import { Logger } from 'data-provider/logger';
+import { createSafeProvider } from '@rstackio/services/data-provider';
+import { Logger } from '@rstackio/services/logger';
 
 const logger = new Logger({ prefix: 'getUser' });
 

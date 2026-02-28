@@ -1,5 +1,5 @@
 {
-  "name": "data-provider",
+  "name": "@rstackio/services",
   "version": "1.0.0",
   "type": "module",
   "exports": {

@@ -1,40 +1,50 @@
-# data-provider
+# Services
 
-Minimal TypeScript toolkit for async data fetching — typed errors, chainable transforms, zero-config mocking.
+> Minimal TypeScript toolkit for async data fetching —
+> typed errors, chainable transforms, zero-config mocking.
 
-```ts
-const getUser = createSafeProvider(api.getUser)
-  .andMock(mock.getUser)
-  .andThen((user) => ({ ...user, fullName: `${user.firstName} ${user.lastName}` }))
-  .andCatch((error) => { logger.error('getUser failed', error); throw error; });
-
-const [error, user] = await getUser(id, { signal });
-```
+[![npm](https://img.shields.io/npm/v/@rstackio/services)](https://www.npmjs.com/package/@rstackio/services)
+[![license](https://img.shields.io/npm/l/@rstackio/services)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-blue)](https://www.typescriptlang.org/)
 
 ---
 
-## Modules
+## 💡 Philosophy
 
-| Module | Purpose |
-|--------|---------|
-| [`data-provider`](src/data-provider/docs/api.docs.mdx) | Wrap async functions in a chainable, mockable, type-safe API |
-| [`mock`](src/mock/docs/api.docs.mdx) | Toggle mock mode, simulate latency, SSR-compatible state |
-| [`safe`](src/safe/docs/api.docs.mdx) | Wrap any function to return `[error, data]` instead of throwing |
-| [`logger`](src/logger/docs/api.docs.mdx) | Structured console logger, silent in production |
+Most async data layers grow into a tangle of try/catch blocks, ad-hoc mocks, and one-off error handling scattered across components. **Services** is an attempt to fix that at the source.
 
----
+A few guiding principles:
 
-## Key features
-
-- **`[error, data]` tuples** — `createSafeProvider` never throws; errors are typed values
-- **Chainable API** — `.andMock()` `.andThen()` `.andCatch()` `.andFinally()` compose once, apply on every call
-- **Zero-config testing** — mocks activate automatically in `NODE_ENV=test`; swap them per test with `.andMock()`
-- **Dev mocking** — toggle mocks from the browser console without touching source code
-- **Abort support** — `AbortSignal` flows through providers and `delay()` helpers
+- **Errors are values, not exceptions.** `[error, data]` tuples make error handling explicit and type-safe — no surprises, no forgotten catch blocks.
+- **Define once, run everywhere.** Transforms, error handlers, and mocks are declared on the provider, not at every call site. Change behavior in one place.
+- **Mocking should cost nothing.** Tests and dev mode use real mock files — no framework magic, no `vi.mock` gymnastics. Toggle from the console, swap per test with `.andMock()`.
+- **No hidden abstractions.** The provider is just a function. `await getUser(id)` — it does exactly what you'd expect.
+- **Colocation over convention.** Each feature owns its `api`, `mock`, `normalize`, and `provider` files. The data layer lives next to the feature that uses it.
 
 ---
 
-## File structure
+## ✨ Features
+
+- 🛡️ **`[error, data]` tuples** — `createSafeProvider` never throws; errors are typed values
+- 🔗 **Chainable API** — `.andMock()` `.andThen()` `.andCatch()` `.andFinally()` compose once, apply on every call
+- 🧪 **Zero-config testing** — mocks activate automatically in `NODE_ENV=test`; swap them per test with `.andMock()`
+- 🎭 **Dev mocking** — toggle mocks from the browser console without touching source code
+- ⚡ **Abort support** — `AbortSignal` flows through providers and `delay()` helpers
+
+---
+
+## 📦 Modules
+
+| Module | Purpose | Docs |
+|--------|---------|------|
+| `data-provider` | Wrap async functions in a chainable, mockable, type-safe API | [API](src/data-provider/docs/api.docs.mdx) · [Usage](src/data-provider/docs/usage.docs.mdx) |
+| `mock` | Toggle mock mode, simulate latency, SSR-compatible state | [API](src/mock/docs/api.docs.mdx) · [Usage](src/mock/docs/usage.docs.mdx) |
+| `safe` | Wrap any function to return `[error, data]` instead of throwing | [API](src/safe/docs/api.docs.mdx) |
+| `logger` | Structured console logger, silent in production | [API](src/logger/docs/api.docs.mdx) |
+
+---
+
+## 🗂️ File structure
 
 Each feature module owns its data layer in a `data-provider/` folder:
 
@@ -42,11 +52,14 @@ Each feature module owns its data layer in a `data-provider/` folder:
 src/
   modules/
     user/
+      models/
+        user.ts         ← types and validation schema
       data-provider/
-        api.ts        ← real async function
-        mock.ts       ← mock using delay()
-        provider.ts   ← createProvider(api).andMock(mock).andThen(normalize)
-        index.ts      ← export * from './provider'
+        api.ts          ← real async function
+        mock.ts         ← mock using delay()
+        normalize.ts    ← pure function to transform API response
+        provider.ts     ← createProvider(api).andMock(mock).andThen(normalize)
+        index.ts        ← export * from './provider'
 ```
 
 Consume anywhere in the module:
@@ -59,19 +72,21 @@ const [error, user] = await Dp.getUser(id);
 
 ---
 
-## Installation
+## 🚀 Installation
 
 ```sh
-npm install data-provider
-pnpm add data-provider
-yarn add data-provider
+npm install @rstackio/services
+# or
+pnpm add @rstackio/services
+# or
+yarn add @rstackio/services
 ```
 
 Requires **TypeScript 5.0+** with `strict: true`.
 
 ---
 
-## Development
+## 🛠️ Development
 
 ```sh
 pnpm install
@@ -79,6 +94,8 @@ pnpm test          # run tests
 pnpm test:watch    # watch mode
 pnpm build         # build dist
 ```
+
+---
 
 ## License
 

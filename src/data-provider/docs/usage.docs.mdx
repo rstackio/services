@@ -28,7 +28,7 @@ export const getUser = async (id: string, signal?: AbortSignal) => {
 **`mock.ts`** — the mock implementation
 
 ```ts
-import { delay } from 'data-provider/mock';
+import { delay } from '@rstackio/services/mock';
 
 export const getUser = (id: string, signal?: AbortSignal) =>
   delay(
@@ -40,8 +40,8 @@ export const getUser = (id: string, signal?: AbortSignal) =>
 **`provider.ts`** — assembled provider
 
 ```ts
-import { createSafeProvider } from 'data-provider/data-provider';
-import { Logger } from 'data-provider/logger';
+import { createSafeProvider } from '@rstackio/services/data-provider';
+import { Logger } from '@rstackio/services/logger';
 import * as api from './api';
 import * as mock from './mock';
 
@@ -87,7 +87,7 @@ controller.abort();
 ## With `createProvider` (throws on error)
 
 ```ts
-import { createProvider } from 'data-provider/data-provider';
+import { createProvider } from '@rstackio/services/data-provider';
 
 export const getUser = createProvider(api.getUser)
   .andMock(mock.getUser)

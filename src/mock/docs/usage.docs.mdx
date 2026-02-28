@@ -4,7 +4,7 @@
 
 ```ts
 // feature/mock.ts
-import { delay } from 'data-provider/mock';
+import { delay } from '@rstackio/services/mock';
 
 export const getUser = (id: string, signal?: AbortSignal) =>
   delay(
@@ -26,7 +26,7 @@ Then connect it with `createProvider`:
 
 ```ts
 // feature/provider.ts
-import { createSafeProvider } from 'data-provider/data-provider';
+import { createSafeProvider } from '@rstackio/services/data-provider';
 import * as api from './api';
 import * as mock from './mock';
 
@@ -67,7 +67,7 @@ describe('getUser', () => {
 From the browser console or a debug panel:
 
 ```ts
-import { enableMock, disableMock } from 'data-provider/mock';
+import { enableMock, disableMock } from '@rstackio/services/mock';
 
 // Activate — persists across page reloads via localStorage
 enableMock();
@@ -81,7 +81,7 @@ disableMock();
 ## Testing abort behavior
 
 ```ts
-import { delay } from 'data-provider/mock';
+import { delay } from '@rstackio/services/mock';
 
 const controller = new AbortController();
 
@@ -103,7 +103,7 @@ await promise.catch((error) => {
 `enableMock()` and `disableMock()` work in Node environments — state is stored in-memory instead of `localStorage`. Useful for server-side scripts or test suites.
 
 ```ts
-import { enableMock, isMockEnabled } from 'data-provider/mock';
+import { enableMock, isMockEnabled } from '@rstackio/services/mock';
 
 enableMock();
 console.log(isMockEnabled()); // true
