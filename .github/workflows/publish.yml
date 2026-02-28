@@ -9,7 +9,7 @@ jobs:
     name: Publish to npm
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write # required for pushing git tags
       id-token: write # required for npm provenance
 
     steps:
@@ -39,12 +39,22 @@ jobs:
         run: pnpm build
 
       - name: Publish if new version
+        id: publish
         run: |
           PKG_VERSION=$(node -p "require('./package.json').version")
           if npm view @rstackio/services@$PKG_VERSION version > /dev/null 2>&1; then
             echo "Version $PKG_VERSION already published, skipping"
+            echo "published=false" >> $GITHUB_OUTPUT
           else
             pnpm publish --no-git-checks --access public --provenance
+            echo "published=true" >> $GITHUB_OUTPUT
+            echo "version=$PKG_VERSION" >> $GITHUB_OUTPUT
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.RSTACKIO_NPM_TOKEN }}
+
+      - name: Push git tag
+        if: steps.publish.outputs.published == 'true'
+        run: |
+          git tag "v${{ steps.publish.outputs.version }}"
+          git push origin "v${{ steps.publish.outputs.version }}"
