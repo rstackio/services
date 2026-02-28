@@ -35,6 +35,33 @@ export const getUser = createSafeProvider(api.getUser).andMock(mock.getUser);
 
 ---
 
+## In tests
+
+`isMockEnabled()` returns `true` automatically when `NODE_ENV === 'test'`. No explicit call to `enableMock()` is needed — any provider with `.andMock()` will use the mock.
+
+To test different behaviors within a suite, swap the mock per test with `.andMock()`:
+
+```ts
+import { getUser } from './provider';
+import * as mock from './mock';
+
+describe('getUser', () => {
+  beforeAll(() => getUser.andMock(mock.getUser));
+
+  it('returns a user', async () => { /* ... */ });
+
+  it('surfaces API errors', async () => {
+    getUser.andMock(() => Promise.reject(new Error('Internal server error')));
+
+    const [error] = await getUser('1');
+
+    expect(error?.message).toBe('Internal server error');
+  });
+});
+```
+
+---
+
 ## Toggling mocks in development
 
 From the browser console or a debug panel:

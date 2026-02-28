@@ -103,6 +103,71 @@ try {
 
 ---
 
+## Testing
+
+Mocks activate automatically when `NODE_ENV === 'test'` — no setup, no `vi.mock`, no wiring. Any provider with `.andMock()` uses the mock implementation across your entire test suite.
+
+### Zero-config: import and test
+
+```ts
+// user.test.ts
+import { getUser } from './provider'; // uses mock.getUser automatically
+
+it('returns a transformed user', async () => {
+  const [error, user] = await getUser('1');
+
+  expect(error).toBeNull();
+  expect(user?.fullName).toBe('Test User'); // value defined in mock.ts
+});
+```
+
+### Suite-level mock with different API behaviors
+
+Export the provider without calling `.andMock()` at module level — then control the mock per test suite:
+
+```ts
+// provider.ts — no .andMock() here; mocks are set in tests
+export const getUser = createSafeProvider(api.getUser)
+  .andThen((user) => ({ ...user, fullName: `${user.firstName} ${user.lastName}` }));
+```
+
+```ts
+// user.test.ts
+import { getUser } from './provider';
+import * as mock from './mock';
+
+describe('getUser', () => {
+  beforeAll(() => {
+    getUser.andMock(mock.getUser); // apply default mock for the whole suite
+  });
+
+  it('returns a user', async () => {
+    const [error, user] = await getUser('1');
+    expect(user?.fullName).toBe('Test User');
+  });
+
+  it('surfaces API errors', async () => {
+    getUser.andMock(() => Promise.reject(new Error('Internal server error')));
+
+    const [error] = await getUser('1');
+
+    expect(error?.message).toBe('Internal server error');
+  });
+
+  it('handles not found', async () => {
+    getUser.andMock(() => Promise.reject(new NotFoundError('user not found')));
+
+    const [error] = await getUser('1');
+
+    expect(error).toBeInstanceOf(NotFoundError);
+  });
+});
+```
+
+`.andMock()` mutates the provider in place — swap it freely per test. No `vi.mock`, no module factory overhead, no extra setup.
+
+---
+
 ## Narrowing error types
 
 Use `as const` to tell TypeScript exactly which errors can occur:
