@@ -5,10 +5,8 @@
   "type": "module",
   "exports": {
     "./*": {
-      "import": {
-        "types": "./dist/*/index.d.ts",
-        "default": "./dist/*/index.js"
-      }
+      "types": "./dist/*/index.d.ts",
+      "import": "./dist/*/index.js"
     }
   },
   "files": [
@@ -17,14 +15,17 @@
   ],
   "scripts": {
     "build": "rslib build",
-    "check": "biome check --write",
+    "check:types": "tsc --noEmit",
     "dev": "rslib build --watch",
     "format": "biome format --write",
+    "format:lint": "biome check",
     "preinstall": "npx only-allow pnpm",
-    "lint": "biome check",
+    "lint": "biome lint --write",
     "prepare": "simple-git-hooks",
-    "test": "rstest",
-    "test:watch": "rstest --watch"
+    "test": "rstest run",
+    "test:coverage": "rstest run --coverage",
+    "test:related": "rstest run --passWithNoTests",
+    "test:watch": "rstest watch"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm lint-staged",
@@ -46,6 +47,7 @@
     "@rslib/core": "^0.19.6",
     "@rstest/adapter-rslib": "^0.2.0",
     "@rstest/core": "^0.8.5",
+    "@rstest/coverage-istanbul": "^0.2.1",
     "@types/node": "^24.10.13",
     "happy-dom": "^20.7.0",
     "lint-staged": "^16.3.0",

@@ -5,4 +5,7 @@ export default defineConfig({
   extends: withRslibConfig(),
   globals: true,
   testEnvironment: 'happy-dom',
+  coverage: {
+    provider: 'istanbul',
+  },
 });
