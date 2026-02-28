@@ -18,7 +18,7 @@
     "check:types": "tsc --noEmit",
     "dev": "rslib build --watch",
     "format": "biome format --write",
-    "format:lint": "biome check",
+    "format:lint": "biome check --diagnostic-level=error",
     "preinstall": "npx only-allow pnpm",
     "lint": "biome lint --write",
     "prepare": "simple-git-hooks",
