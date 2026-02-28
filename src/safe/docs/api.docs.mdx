@@ -1,0 +1,136 @@
+import { Meta, Source, Markdown } from '@storybook/addon-docs/blocks';
+
+<Meta title="safe/api" />
+ 
+# API
+
+------
+### `safe` - A utility function for wrapping operations with error handling and type-safe results
+------
+
+<Source type="typescript" dark code={`
+import { safe } from '@nvision/services/data-provider';
+
+  // Basic usage
+  const safeOperation = safe(
+    async (id: string) => {
+      const data = await fetchData(id);
+      return data;
+    }
+  );
+
+  // With specific error types
+  const safeWithErrors = safe(
+    (value: number) => value.toString(),
+    [TypeError, RangeError] as const
+  );
+
+  // With error transformation
+  const safeWithTransform = safe(
+    async () => { throw new Error('Original error') },
+    [Error] as const,
+    (error) => new CustomError('Transformed: ' + error.message)
+  );
+`} />
+
+## Core Concepts
+
+The `safe` utility function provides a robust way to handle operations that might fail, offering:
+
+- Type-safe error handling
+- Support for both synchronous and asynchronous operations
+- Explicit error type checking
+- Optional error transformation
+- Tuple-based result type that ensures error handling
+
+## API Reference
+
+### Parameters
+
+- `action: (...args: any[]) => unknown`
+  - The function to be wrapped with error handling
+  - Can be synchronous or asynchronous
+  - Preserves original function parameters and return type
+
+- `errorTypes?: readonly ErrorConstructorLike<any>[]`
+  - Optional array of error constructors to catch
+  - If not provided, catches all errors
+  - Use `as const` assertion for precise error type inference
+  
+- `errorTransformer?: (error: Error) => Promise<ErrorType> | ErrorType`
+  - Optional function to transform caught errors
+  - Can be synchronous or asynchronous
+  - Useful for standardizing error formats
+
+### Return Type
+
+Returns a wrapped function with the following characteristics:
+
+- Preserves the original function's parameter types
+- Returns a tuple type `Result<ResponseType, ErrorType>`
+  - Success: `[null, ResponseType]`
+  - Error: `[ErrorType, null]`
+- Maintains Promise-based returns for async operations
+
+### Examples
+
+#### Basic Usage
+<Source type="typescript" dark code={`
+  // Wrap a simple synchronous function
+  const divide = safe((a: number, b: number) => {
+    if (b === 0) throw new Error('Division by zero');
+    return a / b;
+  });
+
+  const [error, result] = divide(10, 2);
+  // result: [null, 5]
+
+  const [error2, result2] = divide(10, 0);
+  // error2: [Error('Division by zero'), null]
+`} />
+
+#### With Specific Error Types
+<Source type="typescript" dark code={`
+// Define custom errors
+class ValidationError extends Error {}
+class NetworkError extends Error {}
+
+// Wrap with specific error types
+const fetchUser = safe(
+    async (id: string) => {
+        // ... fetch logic
+    },
+    [ValidationError, NetworkError] as const // Note the 'as const'
+);
+
+const [error, user] = await fetchUser('123');
+// TypeScript knows error can only be ValidationError | NetworkError
+`} />
+
+#### With Error Transformation
+<Source type="typescript" dark code={`
+  class AppError extends Error {
+    constructor(message: string, public code: string) {
+      super(message);
+    }
+  }
+
+  const processData = safe(
+    (data: unknown) => {
+      // ... processing logic
+    },
+    [Error] as const,
+    (error) => new AppError(error.message, 'PROCESS_ERROR')
+  );
+`} />
+
+### Type Safety
+
+The `safe` utility provides complete type inference for:
+- Function parameters
+- Return values
+- Error types
+- Transformed error types
+
+This ensures that error handling is properly typed throughout your application.
+

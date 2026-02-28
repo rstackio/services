@@ -1,0 +1,145 @@
+import { Meta, Source, Markdown } from '@storybook/addon-docs/blocks';
+
+<Meta title="mock/api" />
+ 
+# API
+
+## Mock Utilities
+
+A collection of utilities for managing mock data and simulating async behavior in development and testing environments.
+
+------
+### Basic Import
+------
+
+<Source type="typescript" dark code={`
+  import { isMockEnabled, enableMock, disableMock, delay } from '@nvision/services/mock';
+`} />
+
+## Core Functions
+
+### `isMockEnabled`
+
+Determines whether mock data should be used based on the environment.
+
+<Source type="typescript" dark code={`
+  const isMockEnabled = () => boolean;
+`} />
+
+#### Returns
+- `boolean`: Returns `true` if:
+  - The application is running in test environment (`NODE_ENV === 'test'`)
+  - Mock mode has been explicitly enabled via `enableMock()`
+- Returns `false` otherwise
+
+#### Example
+<Source type="typescript" dark code={`
+  if (isMockEnabled()) {
+    return getMockData();
+  } else {
+    return fetchRealData();
+  }
+`} />
+
+### `enableMock`
+
+Enables mock data usage in the application.
+
+<Source type="typescript" dark code={`
+  const enableMock = () => void;
+`} />
+
+#### Example
+<Source type="typescript" dark code={`
+  enableMock();
+`} />
+
+### `disableMock`
+
+Disables mock data usage in the application.
+
+<Source type="typescript" dark code={`
+  const disableMock = () => void;
+`} />
+
+#### Example
+<Source type="typescript" dark code={`
+  disableMock();
+`} />
+
+### `delay`
+
+Simulates an asynchronous operation with a configurable delay and abort support.
+
+<Source type="typescript" dark code={`
+  const delay = <T>(
+    fn: () => T,
+    options?: {
+      signal?: AbortController['signal'];
+      delayMs?: number;
+    }
+  ) => Promise<T>;
+`} />
+
+#### Parameters
+- `fn`: `() => T`
+  - A function that returns the value to be resolved after the delay
+- `options` (optional): Object
+  - `signal?: AbortController['signal']`: AbortController signal for cancellation
+  - `delayMs?: number`: Delay duration in milliseconds
+
+#### Returns
+- `Promise<T>`: A promise that resolves with the return value of `fn` after the specified delay
+
+#### Example
+<Source type="typescript" dark code={`
+  // Basic usage
+  const result = await delay(
+    () => ({ data: 'mock data' }),
+    { delayMs: 1000 }
+  );
+
+  // With abort controller
+  const controller = new AbortController();
+  try {
+    const result = await delay(
+      () => fetchMockData(),
+      { 
+        signal: controller.signal,
+        delayMs: 2000
+      }
+    );
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('Operation was aborted');
+    }
+  }
+
+  // Abort the operation
+  controller.abort();
+`} />
+
+## Best Practices
+
+1. **Testing Environment**
+   - The mock system automatically activates in test environments
+   - No need to explicitly call `enableMock()` in test files
+
+2. **Development Usage**
+   - Use `enableMock()` / `disableMock()` to toggle between real and mock data during development
+   - Helpful for testing UI states without backend dependencies
+
+3. **Delay Simulation**
+   - Use `delay` to simulate realistic API response times
+   - Always provide abort signals for cancelable operations
+   - Consider using different delay times for different types of operations
+
+4. **Local Storage**
+   - Mock settings persist across page reloads via localStorage
+   - Clear localStorage or call `disableMock()` to reset to default behavior
+
+## Type Safety
+
+All functions are fully typed with TypeScript:
+- `delay` function preserves the return type of the provided function
+- AbortController types are properly integrated for IDE support

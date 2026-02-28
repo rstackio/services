@@ -1,0 +1,124 @@
+import { Meta, Source, Markdown } from '@storybook/addon-docs/blocks';
+
+<Meta title="logger/api" />
+ 
+# API
+
+The Logger class provides a customizable logging utility with different log levels and colored output. It's designed to be disabled in production environments by default.
+
+## Features
+
+- Four log levels: `info`, `warn`, `error`, and `debug`
+- Colored output for different log levels
+- Optional prefix for all log messages
+- Automatic disabling in production environments
+- Proxy-based console handling
+
+## Installation
+
+```typescript
+import { Logger } from '@nvision/services/logger';
+```
+
+## Basic Usage
+
+Create a new logger instance and start logging:
+
+```typescript
+const logger = new Logger();
+
+logger.info('Application started');
+logger.warn('Resource running low');
+logger.error('Failed to connect to database');
+logger.debug('Current state:', { users: 10, active: true });
+```
+
+## Constructor Options
+
+The Logger constructor accepts an options object with the following properties:
+
+```typescript
+interface LoggerOptions {
+  prefix?: string;      // Optional prefix for all log messages
+  isEnabled?: boolean;  // Override default enabled state
+}
+```
+
+### Example with Options
+
+```typescript
+const logger = new Logger({
+  prefix: 'MyApp',
+  isEnabled: true
+});
+
+logger.info('Initialization complete');
+// Output: [MyApp][INFO]: Initialization complete
+```
+
+## Log Levels
+
+Each log level has its own method and color coding:
+
+<Markdown>{`
+| Level | Method | Color | Usage |
+|-------|--------|-------|-------|
+| Info | \`info()\` | Blue (#2196F3) | General information |
+| Warn | \`warn()\` | Orange (#FF9800) | Warning messages |
+| Error | \`error()\` | Red (#F44336) | Error conditions |
+| Debug | \`debug()\` | Gray (#9E9E9E) | Debug information |
+`}
+</Markdown>
+
+## Method Signatures
+
+All logging methods share the same signature:
+
+```typescript
+logger.info(message: string, ...args: unknown[]): void
+logger.warn(message: string, ...args: unknown[]): void
+logger.error(message: string, ...args: unknown[]): void
+logger.debug(message: string, ...args: unknown[]): void
+```
+
+### Additional Arguments
+
+You can pass additional arguments that will be logged along with the message:
+
+```typescript
+logger.info('User logged in', { userId: 123, timestamp: new Date() });
+logger.error('Request failed', new Error('Network error'), { statusCode: 500 });
+```
+
+## Production Behavior
+
+By default, logging is disabled in production environments (`process.env.NODE_ENV === 'production'`). You can override this behavior by setting `isEnabled` in the constructor options:
+
+```typescript
+const productionLogger = new Logger({
+  isEnabled: true // Enable logging even in production
+});
+```
+
+## Best Practices
+
+1. Use appropriate log levels:
+   - `info` for general application flow
+   - `warn` for potentially problematic situations
+   - `error` for error conditions that need attention
+   - `debug` for detailed debugging information
+
+2. Add meaningful prefixes for different modules:
+```typescript
+const authLogger = new Logger({ prefix: 'Auth' });
+const apiLogger = new Logger({ prefix: 'API' });
+```
+
+3. Include relevant context in additional arguments:
+```typescript
+logger.error('Operation failed', {
+  operation: 'dataSync',
+  duration: 1500,
+  error: new Error('Timeout')
+});
+```

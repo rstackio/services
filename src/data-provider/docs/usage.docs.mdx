@@ -1,0 +1,41 @@
+import { Meta, Source, Markdown } from '@storybook/addon-docs/blocks';
+
+<Meta title="data-provider/usage" />
+ 
+# Usage
+
+<Source type="typescript" dark code={`
+  import { createProvider } from '@nvision/services/data-provider';
+  import * as mockService from '@nvision/services/mock';
+
+  // api.ts
+  export const fetchUser = async (id: string, { signal }) => {
+    const response = await fetch(\`/api/users/\${id}\`, { signal });
+    return response.json();
+  });
+
+  // mock.ts
+  export const fetchUser = (id, { signal }) =>
+    mockService.delay(() => ({ id, firstName: "Test", lastName: "User" }), { signal })
+
+  // data-provider.ts
+  export const fetchUser = createProvider(api.fetchUser)
+    .andMock(mock.fetchUser)
+    .andThen(user => ({
+      ...user,
+      fullName: \`\${user.firstName} \${user.lastName}\`
+    }))
+    .andCatch((e) => {
+      if (error instanceof Error && error.name === 'AbortError') {
+        logger.warn('Fetch corrections aborted');
+      } else {
+        logger.error('Fetch corrections was failed:', error);
+      }
+      return Promise.reject(error);
+    })
+
+  const [error, user] = await fetchUser(id);
+`} />
+
+
+

@@ -1,0 +1,110 @@
+import { Meta, Source, Markdown } from '@storybook/addon-docs/blocks';
+
+<Meta title="data-provider/api" />
+ 
+# API
+
+------
+### `createProvider` - creates chainable Promise wrappers with support for mocking, transformations. Type safe.
+### `createSafeProvider` - creates chainable Promise wrappers with support for mocking, transformations, and error handling. Type safe.
+------
+
+<Source type="typescript" dark code={`
+import { createProvider, createSafeProvider } from '@nvision/services/data-provider';
+
+`} />
+## Core Concepts
+
+The provider creates a chainable API around asynchronous functions, allowing you to:
+- Transform Promise results
+- Mock implementations designed for `development` and `testing` purposes, with functionality automatically turned off in `production` mode.
+- Handle errors
+
+## API Reference
+
+### `createProvider<Fn>`
+
+Creates a chainable wrapper around an async function.
+
+```typescript
+const provider = createProvider(asyncFunction);
+```
+
+#### Type Parameters
+  - `Fn`: The type of the async function being wrapped
+  - Must return a Promise
+  - Can accept any number of parameters
+
+### Chainable Methods
+
+#### `andThen<TResult>`
+Transforms the Promise result.
+
+```typescript
+provider.andThen((result) => transformedResult)
+```
+
+- Parameters:
+  - `fn: (value: Result) => TResult`: Transform function
+- Returns: Chained instance with updated result type
+
+#### `andCatch`
+Handles errors in the Promise chain.
+
+```typescript
+provider.andCatch((error) => handleError(error))
+```
+
+- Parameters:
+  - `fn: (error: any) => any`: Error handler
+- Returns: Chained instance
+
+#### `andFinally`
+Executes cleanup code after Promise resolution.
+
+```typescript
+provider.andFinally(() => cleanup())
+```
+
+- Parameters:
+  - `fn: () => void`: Cleanup function
+- Returns: Chained instance
+
+#### `andMock`
+Provides a mock implementation for testing.
+
+```typescript
+provider.andMock(mockImplementation)
+```
+
+- Parameters:
+  - `fn: Fn`: Mock function matching original signature
+- Returns: Chained instance
+
+## Type Safety
+
+The provider maintains type safety throughout the chain:
+- Result transformations update the return type
+- Parameter types are preserved from the original function
+- Mock implementations must match the original signature
+
+## Best Practices
+
+1. **Chain Order**: While the order of chain operations doesn't affect execution, maintain consistent ordering for readability:
+   ```typescript
+   provider
+     .andMock()
+     .andThen()
+     .andCatch()
+     .andFinally()
+   ```
+
+3. **Mocking**: Keep mock implementations close to the provider.
+
+    ```text
+    --/data-provider
+    ----/api
+    ----/mock
+    ----/normalize
+    ----data-provider.ts
+    ```
