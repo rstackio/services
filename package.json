@@ -2,6 +2,7 @@
   "name": "@rstackio/services",
   "version": "0.1.0",
   "private": false,
+  "license": "MIT",
   "type": "module",
   "exports": {
     "./*": {
@@ -11,7 +12,9 @@
   },
   "files": [
     "dist",
-    "package.json"
+    "package.json",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "rslib build",
