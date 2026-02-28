@@ -11,7 +11,7 @@
 
 ## 💡 Philosophy
 
-Most async data layers grow into a tangle of try/catch blocks, ad-hoc mocks, and one-off error handling scattered across components. **Services** is an attempt to fix that at the source.
+Most async data layers grow into a tangle of try/catch blocks, ad-hoc mocks, and one-off error handling scattered across components. **Services** is built to fix that at the source — the main goal is to make async data work feel smooth and predictable, so developers spend less time on plumbing and more time building features.
 
 A few guiding principles:
 
@@ -94,6 +94,22 @@ pnpm test          # run tests
 pnpm test:watch    # watch mode
 pnpm build         # build dist
 ```
+
+---
+
+## 👥 Contributors
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/rkovalov">
+        <img src="https://github.com/rkovalov.png" width="80" alt="rkovalov" style="border-radius:50%"/><br/>
+        <sub><b>Rudolf Kovalov</b></sub>
+      </a><br/>
+      <sub>author · maintainer</sub>
+    </td>
+  </tr>
+</table>
 
 ---
 
