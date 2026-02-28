@@ -4,13 +4,14 @@ export const STORE_KEYS = {
 
 const memoryStore = new Map<string, string>();
 
-const storage: Pick<Storage, 'getItem' | 'setItem'> =
-  (globalThis as { localStorage?: Storage }).localStorage ?? {
-    getItem: (key: string) => memoryStore.get(key) ?? null,
-    setItem: (key: string, value: string) => {
-      memoryStore.set(key, value);
-    },
-  };
+const storage: Pick<Storage, 'getItem' | 'setItem'> = (
+  globalThis as { localStorage?: Storage }
+).localStorage ?? {
+  getItem: (key: string) => memoryStore.get(key) ?? null,
+  setItem: (key: string, value: string) => {
+    memoryStore.set(key, value);
+  },
+};
 
 export const isMockEnabled = () => {
   if (process.env.NODE_ENV === 'test') {

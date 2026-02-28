@@ -42,9 +42,14 @@ describe('Logger', () => {
         logger[method](message, ...args);
 
         expect(mockConsole[consoleMethod]).toHaveBeenCalled();
-        const calls = (mockConsole[consoleMethod] as ReturnType<typeof rs.fn>).mock.calls[0];
+        const calls = (mockConsole[consoleMethod] as ReturnType<typeof rs.fn>)
+          .mock.calls[0];
 
-        expect(calls?.[0]).toMatch(new RegExp(`\\[TestPrefix\\]\\[${method.toUpperCase()}\\]: ${message}`));
+        expect(calls?.[0]).toMatch(
+          new RegExp(
+            `\\[TestPrefix\\]\\[${method.toUpperCase()}\\]: ${message}`,
+          ),
+        );
         expect(calls?.[1]).toMatch(/color: #[0-9A-F]{6}/i);
         expect(calls?.slice(2)).toEqual(args);
       });

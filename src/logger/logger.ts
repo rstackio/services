@@ -14,13 +14,18 @@ export class Logger {
 
   constructor(options: { prefix?: string; isEnabled?: boolean } = {}) {
     this.prefix = options.prefix;
-    this.isEnabled = Object.hasOwn(options, 'isEnabled') ? (options.isEnabled as boolean) : this.isEnabled;
+    this.isEnabled = Object.hasOwn(options, 'isEnabled')
+      ? (options.isEnabled as boolean)
+      : this.isEnabled;
     this.console = new Proxy(console, {
       get: (target, prop: keyof Console) => {
         if (['log', 'warn', 'error', 'debug'].includes(prop)) {
           return (...args: unknown[]) => {
             if (this.isEnabled) {
-              (target[prop] as (...args: unknown[]) => void).call(target, ...args);
+              (target[prop] as (...args: unknown[]) => void).call(
+                target,
+                ...args,
+              );
             }
           };
         }
@@ -33,7 +38,11 @@ export class Logger {
     // const timestamp = new Date().toISOString();
     const prefix = this.prefix ? `[${this.prefix}]` : '';
 
-    return [`%c ${prefix}[${level.toUpperCase()}]: ${message}`, `color: ${COLORS[level]}; font-weight: bold`, ...args];
+    return [
+      `%c ${prefix}[${level.toUpperCase()}]: ${message}`,
+      `color: ${COLORS[level]}; font-weight: bold`,
+      ...args,
+    ];
   }
 
   info(message: string, ...args: unknown[]) {
