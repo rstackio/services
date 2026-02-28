@@ -4,7 +4,7 @@
 > typed errors, chainable transforms, zero-config mocking.
 
 [![npm](https://img.shields.io/npm/v/@rstackio/services)](https://www.npmjs.com/package/@rstackio/services)
-[![CI](https://github.com/rstackio/services/actions/workflows/ci.yml/badge.svg)](https://github.com/rstackio/services/actions/workflows/ci.yml)
+[![CI](https://github.com/rstackio/services/actions/workflows/publish.yml/badge.svg)](https://github.com/rstackio/services/actions/workflows/publish.yml)
 [![license](https://img.shields.io/npm/l/@rstackio/services)](https://github.com/rstackio/services/blob/main/LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-blue)](https://www.typescriptlang.org/)
 
