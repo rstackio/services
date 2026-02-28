@@ -1,5 +1,68 @@
-import { Meta, Source, Markdown } from '@storybook/addon-docs/blocks';
+# Logger Usage
 
-<Meta title="logger/usage" />
- 
-# Usage
+## One logger per module
+
+Create a logger at the top of each file with a meaningful prefix:
+
+```ts
+import { Logger } from 'data-provider/logger';
+
+const logger = new Logger({ prefix: 'UserService' });
+
+export async function createUser(data: CreateUserInput) {
+  logger.debug('createUser called', data);
+
+  try {
+    const user = await db.users.create(data);
+    logger.info('User created', { userId: user.id });
+    return user;
+  } catch (error) {
+    logger.error('Failed to create user', error, data);
+    throw error;
+  }
+}
+```
+
+---
+
+## With `createSafeProvider`
+
+```ts
+import { createSafeProvider } from 'data-provider/data-provider';
+import { Logger } from 'data-provider/logger';
+
+const logger = new Logger({ prefix: 'getUser' });
+
+export const getUser = createSafeProvider(api.getUser)
+  .andCatch((error) => {
+    if (error.name === 'AbortError') {
+      logger.warn('Request aborted');
+    } else {
+      logger.error('Request failed', error);
+    }
+    throw error;
+  });
+```
+
+---
+
+## Silencing in tests
+
+The logger respects `NODE_ENV`. In test environments (where `NODE_ENV === 'test'`), you can suppress output by instantiating with `isEnabled: false` or by mocking console:
+
+```ts
+// In test setup
+const logger = new Logger({ isEnabled: false });
+```
+
+---
+
+## Production override
+
+Logging is off by default in production. To enable it for specific loggers (e.g. an audit log):
+
+```ts
+const auditLogger = new Logger({ prefix: 'Audit', isEnabled: true });
+
+auditLogger.info('Payment processed', { amount, currency, userId });
+```

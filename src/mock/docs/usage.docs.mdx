@@ -1,0 +1,83 @@
+# mock Usage
+
+## Typical mock file
+
+```ts
+// feature/mock.ts
+import { delay } from 'data-provider/mock';
+
+export const getUser = (id: string, signal?: AbortSignal) =>
+  delay(
+    () => ({ id, firstName: 'Test', lastName: 'User', role: 'admin' as const }),
+    { delayMs: 300, signal }
+  );
+
+export const getUsers = (signal?: AbortSignal) =>
+  delay(
+    () => [
+      { id: '1', firstName: 'Alice', role: 'admin' as const },
+      { id: '2', firstName: 'Bob', role: 'member' as const },
+    ],
+    { delayMs: 200, signal }
+  );
+```
+
+Then connect it with `createProvider`:
+
+```ts
+// feature/provider.ts
+import { createSafeProvider } from 'data-provider/data-provider';
+import * as api from './api';
+import * as mock from './mock';
+
+export const getUser = createSafeProvider(api.getUser).andMock(mock.getUser);
+```
+
+---
+
+## Toggling mocks in development
+
+From the browser console or a debug panel:
+
+```ts
+import { enableMock, disableMock } from 'data-provider/mock';
+
+// Activate — persists across page reloads via localStorage
+enableMock();
+
+// Deactivate
+disableMock();
+```
+
+---
+
+## Testing abort behavior
+
+```ts
+import { delay } from 'data-provider/mock';
+
+const controller = new AbortController();
+
+const promise = delay(() => getData(), { delayMs: 1000, signal: controller.signal });
+
+// Abort before the delay completes
+controller.abort();
+
+await promise.catch((error) => {
+  console.log(error.name);    // 'AbortError'
+  console.log(error.message); // 'Aborted'
+});
+```
+
+---
+
+## SSR / Node usage
+
+`enableMock()` and `disableMock()` work in Node environments — state is stored in-memory instead of `localStorage`. Useful for server-side scripts or test suites.
+
+```ts
+import { enableMock, isMockEnabled } from 'data-provider/mock';
+
+enableMock();
+console.log(isMockEnabled()); // true
+```

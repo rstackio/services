@@ -1,0 +1,124 @@
+# mock API
+
+Utilities for managing mock state and simulating async operations. Works in browser, SSR, and Node environments.
+
+```ts
+import { isMockEnabled, enableMock, disableMock, delay, STORE_KEYS } from 'data-provider/mock';
+```
+
+---
+
+## Mock state
+
+### `isMockEnabled(): boolean`
+
+Returns `true` if mock mode is active.
+
+```ts
+if (isMockEnabled()) {
+  return getMockData();
+}
+return fetchRealData();
+```
+
+Returns `true` when:
+- `NODE_ENV === 'test'` (automatic)
+- `enableMock()` has been called (and `disableMock()` has not been called since)
+
+Always returns `false` in production.
+
+---
+
+### `enableMock(): void`
+
+Activates mock mode.
+
+```ts
+enableMock();
+```
+
+In a browser, the state is persisted to `localStorage` so it survives page reloads. In SSR/Node environments, it is stored in-memory for the lifetime of the process.
+
+---
+
+### `disableMock(): void`
+
+Deactivates mock mode.
+
+```ts
+disableMock();
+```
+
+---
+
+### `STORE_KEYS`
+
+The storage key used internally. Useful if you need to inspect or reset the value directly.
+
+```ts
+STORE_KEYS.isMockEnabled // 'dp:mock.enabled'
+```
+
+---
+
+## `delay(fn, options?)`
+
+Simulates an async operation with configurable latency and abort support.
+
+```ts
+const delay = <T>(
+  fn: () => T,
+  options?: {
+    signal?: AbortController['signal'];
+    delayMs?: number;
+  }
+) => Promise<T>
+```
+
+**Parameters**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `fn` | `() => T` | Function returning the mock value |
+| `options.delayMs` | `number` | Delay in milliseconds |
+| `options.signal` | `AbortSignal` | Abort support |
+
+**Returns** `Promise<T>` — resolves with the return value of `fn` after `delayMs`.
+
+### Examples
+
+```ts
+// Basic
+const user = await delay(() => ({ id: '1', name: 'Alice' }), { delayMs: 500 });
+
+// With abort
+const controller = new AbortController();
+
+const user = await delay(
+  () => ({ id: '1', name: 'Alice' }),
+  { delayMs: 1000, signal: controller.signal }
+);
+
+// Cancel before delay completes
+controller.abort(); // rejects with DOMException('Aborted', 'AbortError')
+```
+
+---
+
+## Storage behavior
+
+| Environment | Storage | Persistence |
+|-------------|---------|-------------|
+| Browser | `localStorage` | Survives page reloads |
+| SSR / Node | In-memory `Map` | Process lifetime only |
+
+State is resolved once at module load time — no `window` checks on every call.
+
+---
+
+## Best practices
+
+- Call `enableMock()` from dev tools or a debug panel — no need to modify source code
+- `NODE_ENV === 'test'` automatically activates mocks; no explicit `enableMock()` needed in tests
+- Use `delay()` in mock functions to simulate realistic latency and test loading states
+- Always pass an `AbortSignal` from your mock functions to correctly simulate cancellation

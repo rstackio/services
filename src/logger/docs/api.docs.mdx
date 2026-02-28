@@ -1,124 +1,106 @@
-import { Meta, Source, Markdown } from '@storybook/addon-docs/blocks';
+# Logger API
 
-<Meta title="logger/api" />
- 
-# API
+A lightweight logger with color-coded output, module prefixes, and automatic silencing in production.
 
-The Logger class provides a customizable logging utility with different log levels and colored output. It's designed to be disabled in production environments by default.
-
-## Features
-
-- Four log levels: `info`, `warn`, `error`, and `debug`
-- Colored output for different log levels
-- Optional prefix for all log messages
-- Automatic disabling in production environments
-- Proxy-based console handling
-
-## Installation
-
-```typescript
-import { Logger } from '@nvision/services/logger';
+```ts
+import { Logger } from 'data-provider/logger';
 ```
 
-## Basic Usage
+---
 
-Create a new logger instance and start logging:
+## `new Logger(options?)`
 
-```typescript
-const logger = new Logger();
+**Options**
 
-logger.info('Application started');
-logger.warn('Resource running low');
-logger.error('Failed to connect to database');
-logger.debug('Current state:', { users: 10, active: true });
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `prefix` | `string` | `undefined` | Prepended to every message: `[prefix][LEVEL]: ...` |
+| `isEnabled` | `boolean` | `true` (non-production) | Override the default enabled state |
+
+By default, the logger is **disabled when `NODE_ENV === 'production'`** and enabled everywhere else.
+
+```ts
+const logger = new Logger({ prefix: 'Auth' });
 ```
 
-## Constructor Options
+---
 
-The Logger constructor accepts an options object with the following properties:
+## Methods
 
-```typescript
-interface LoggerOptions {
-  prefix?: string;      // Optional prefix for all log messages
-  isEnabled?: boolean;  // Override default enabled state
-}
-```
+All methods share the same signature:
 
-### Example with Options
-
-```typescript
-const logger = new Logger({
-  prefix: 'MyApp',
-  isEnabled: true
-});
-
-logger.info('Initialization complete');
-// Output: [MyApp][INFO]: Initialization complete
-```
-
-## Log Levels
-
-Each log level has its own method and color coding:
-
-<Markdown>{`
-| Level | Method | Color | Usage |
-|-------|--------|-------|-------|
-| Info | \`info()\` | Blue (#2196F3) | General information |
-| Warn | \`warn()\` | Orange (#FF9800) | Warning messages |
-| Error | \`error()\` | Red (#F44336) | Error conditions |
-| Debug | \`debug()\` | Gray (#9E9E9E) | Debug information |
-`}
-</Markdown>
-
-## Method Signatures
-
-All logging methods share the same signature:
-
-```typescript
+```ts
 logger.info(message: string, ...args: unknown[]): void
 logger.warn(message: string, ...args: unknown[]): void
 logger.error(message: string, ...args: unknown[]): void
 logger.debug(message: string, ...args: unknown[]): void
 ```
 
-### Additional Arguments
+Additional `args` are passed through to the underlying console method and displayed inline.
 
-You can pass additional arguments that will be logged along with the message:
+---
 
-```typescript
-logger.info('User logged in', { userId: 123, timestamp: new Date() });
-logger.error('Request failed', new Error('Network error'), { statusCode: 500 });
+## Log levels
+
+| Level | Method | Color | Console method |
+|-------|--------|-------|----------------|
+| Info | `info()` | Blue `#2196F3` | `console.log` |
+| Warn | `warn()` | Orange `#FF9800` | `console.warn` |
+| Error | `error()` | Red `#F44336` | `console.error` |
+| Debug | `debug()` | Gray `#9E9E9E` | `console.debug` |
+
+---
+
+## Examples
+
+### Basic
+
+```ts
+const logger = new Logger();
+
+logger.info('Server started');
+logger.warn('Memory usage above 80%');
+logger.error('Database connection failed', new Error('ECONNREFUSED'));
+logger.debug('Request payload', { method: 'POST', body });
 ```
 
-## Production Behavior
+### With prefix
 
-By default, logging is disabled in production environments (`process.env.NODE_ENV === 'production'`). You can override this behavior by setting `isEnabled` in the constructor options:
+```ts
+const logger = new Logger({ prefix: 'Auth' });
 
-```typescript
-const productionLogger = new Logger({
-  isEnabled: true // Enable logging even in production
-});
+logger.info('User signed in', { userId: '123' });
+// → [Auth][INFO]: User signed in { userId: '123' }
 ```
 
-## Best Practices
+### Force-enable in production
 
-1. Use appropriate log levels:
-   - `info` for general application flow
-   - `warn` for potentially problematic situations
-   - `error` for error conditions that need attention
-   - `debug` for detailed debugging information
+```ts
+const auditLogger = new Logger({ isEnabled: true });
+```
 
-2. Add meaningful prefixes for different modules:
-```typescript
+### Per-module loggers
+
+```ts
 const authLogger = new Logger({ prefix: 'Auth' });
-const apiLogger = new Logger({ prefix: 'API' });
+const apiLogger  = new Logger({ prefix: 'API' });
+const dbLogger   = new Logger({ prefix: 'DB' });
 ```
 
-3. Include relevant context in additional arguments:
-```typescript
-logger.error('Operation failed', {
-  operation: 'dataSync',
-  duration: 1500,
-  error: new Error('Timeout')
-});
+---
+
+## Best practices
+
+- Use `info` for normal application flow
+- Use `warn` for recoverable issues or degraded behavior
+- Use `error` for failures that need attention
+- Use `debug` for internal state during development — it won't appear in production
+- Pass structured objects as additional args rather than string concatenation:
+
+```ts
+// Good
+logger.error('Request failed', { url, status: res.status, duration });
+
+// Avoid
+logger.error(`Request to ${url} failed with status ${res.status}`);
 ```

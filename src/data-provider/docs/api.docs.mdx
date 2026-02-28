@@ -1,110 +1,146 @@
-import { Meta, Source, Markdown } from '@storybook/addon-docs/blocks';
+# data-provider API
 
-<Meta title="data-provider/api" />
- 
-# API
+`createProvider` and `createSafeProvider` wrap async functions in a chainable, mockable, type-safe API.
 
-------
-### `createProvider` - creates chainable Promise wrappers with support for mocking, transformations. Type safe.
-### `createSafeProvider` - creates chainable Promise wrappers with support for mocking, transformations, and error handling. Type safe.
-------
-
-<Source type="typescript" dark code={`
-import { createProvider, createSafeProvider } from '@nvision/services/data-provider';
-
-`} />
-## Core Concepts
-
-The provider creates a chainable API around asynchronous functions, allowing you to:
-- Transform Promise results
-- Mock implementations designed for `development` and `testing` purposes, with functionality automatically turned off in `production` mode.
-- Handle errors
-
-## API Reference
-
-### `createProvider<Fn>`
-
-Creates a chainable wrapper around an async function.
-
-```typescript
-const provider = createProvider(asyncFunction);
+```ts
+import { createProvider, createSafeProvider } from 'data-provider/data-provider';
 ```
 
-#### Type Parameters
-  - `Fn`: The type of the async function being wrapped
-  - Must return a Promise
-  - Can accept any number of parameters
+---
 
-### Chainable Methods
+## `createProvider(fn)`
 
-#### `andThen<TResult>`
-Transforms the Promise result.
+Wraps an async function and returns a chainable callable. Errors propagate normally (throws).
 
-```typescript
-provider.andThen((result) => transformedResult)
+```ts
+const provider = createProvider(async (id: string) => fetchUser(id));
+
+const user = await provider('123');
 ```
 
-- Parameters:
-  - `fn: (value: Result) => TResult`: Transform function
-- Returns: Chained instance with updated result type
+**Type parameters**
 
-#### `andCatch`
-Handles errors in the Promise chain.
+- `Fn` — the async function being wrapped; must return `Promise<T>`
 
-```typescript
-provider.andCatch((error) => handleError(error))
+**Returns** — a function with the same signature as `fn`, extended with `.andThen`, `.andCatch`, `.andFinally`, `.andMock`
+
+---
+
+## `createSafeProvider(fn, errorTypes?)`
+
+Same as `createProvider` but wraps the result in a `[error, data]` tuple. Never throws.
+
+```ts
+const provider = createSafeProvider(async (id: string) => fetchUser(id));
+
+const [error, user] = await provider('123');
 ```
 
-- Parameters:
-  - `fn: (error: any) => any`: Error handler
-- Returns: Chained instance
+**Parameters**
 
-#### `andFinally`
-Executes cleanup code after Promise resolution.
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `fn` | `(...args) => Promise<T>` | The async function to wrap |
+| `errorTypes` | `readonly ErrorConstructor[] \| undefined` | Optional — narrows the error type. Use `as const`. |
 
-```typescript
-provider.andFinally(() => cleanup())
+```ts
+class NetworkError extends Error {}
+class ValidationError extends Error {}
+
+const provider = createSafeProvider(fetchUser, [NetworkError, ValidationError] as const);
+
+const [error, user] = await provider('123');
+// error: NetworkError | ValidationError | null
 ```
 
-- Parameters:
-  - `fn: () => void`: Cleanup function
-- Returns: Chained instance
+---
 
-#### `andMock`
-Provides a mock implementation for testing.
+## Chainable Methods
 
-```typescript
-provider.andMock(mockImplementation)
+All methods return the provider itself, enabling fluent chaining. Define the chain once at module level — it applies on every call.
+
+### `.andThen(fn)`
+
+Transforms the resolved value. The return type of `fn` becomes the new result type.
+
+```ts
+const provider = createSafeProvider(fetchUser)
+  .andThen((user) => ({
+    ...user,
+    fullName: `${user.firstName} ${user.lastName}`,
+  }));
+
+const [error, user] = await provider('123');
+// user.fullName is available and typed
 ```
 
-- Parameters:
-  - `fn: Fn`: Mock function matching original signature
-- Returns: Chained instance
+### `.andCatch(fn)`
+
+Handles errors. Return a fallback value to recover, or rethrow to propagate.
+
+```ts
+const provider = createProvider(fetchUser)
+  .andCatch((error) => {
+    logger.error('fetchUser failed', error);
+    throw error; // rethrow
+  });
+```
+
+### `.andFinally(fn)`
+
+Runs after resolution or rejection — useful for cleanup.
+
+```ts
+const provider = createProvider(fetchUser)
+  .andFinally(() => setLoading(false));
+```
+
+### `.andMock(fn)`
+
+Registers a mock implementation. The mock is used whenever `isMockEnabled()` returns `true` (automatically in test environments, controlled via `enableMock()` in development, never in production).
+
+The mock function must match the signature of the original `fn`.
+
+```ts
+const provider = createSafeProvider(api.fetchUser)
+  .andMock(mock.fetchUser);
+```
+
+---
+
+## Chain Order
+
+Recommended ordering for readability (execution order is the same regardless):
+
+```ts
+createSafeProvider(apiFn)
+  .andMock(mockFn)
+  .andThen(transform)
+  .andCatch(handleError)
+  .andFinally(cleanup)
+```
+
+---
 
 ## Type Safety
 
-The provider maintains type safety throughout the chain:
-- Result transformations update the return type
-- Parameter types are preserved from the original function
-- Mock implementations must match the original signature
+Types are fully inferred throughout the chain. No manual annotations needed.
 
-## Best Practices
+```ts
+const provider = createSafeProvider(async (id: number) => ({ id, name: 'Alice' }))
+  .andThen((user) => user.name);
 
-1. **Chain Order**: While the order of chain operations doesn't affect execution, maintain consistent ordering for readability:
-   ```typescript
-   provider
-     .andMock()
-     .andThen()
-     .andCatch()
-     .andFinally()
-   ```
+// Inferred: (...args: [number]) => Promise<[Error | null, string | null]>
+```
 
-3. **Mocking**: Keep mock implementations close to the provider.
+Parameters are always preserved from the original function, including multiple arguments and `AbortSignal`:
 
-    ```text
-    --/data-provider
-    ----/api
-    ----/mock
-    ----/normalize
-    ----data-provider.ts
-    ```
+```ts
+const provider = createSafeProvider(
+  async (id: string, signal?: AbortSignal) => fetchUser(id, signal)
+);
+
+const controller = new AbortController();
+const [error, user] = await provider('123', controller.signal);
+controller.abort();
+```

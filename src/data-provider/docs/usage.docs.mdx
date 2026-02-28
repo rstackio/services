@@ -1,41 +1,126 @@
-import { Meta, Source, Markdown } from '@storybook/addon-docs/blocks';
+# data-provider Usage
 
-<Meta title="data-provider/usage" />
- 
-# Usage
+## Recommended file structure
 
-<Source type="typescript" dark code={`
-  import { createProvider } from '@nvision/services/data-provider';
-  import * as mockService from '@nvision/services/mock';
+Keep each provider's concerns in three files:
 
-  // api.ts
-  export const fetchUser = async (id: string, { signal }) => {
-    const response = await fetch(\`/api/users/\${id}\`, { signal });
-    return response.json();
+```
+feature/
+  api.ts        ← real async function
+  mock.ts       ← mock using delay()
+  provider.ts   ← createProvider(api).andMock(mock).andThen(...)
+```
+
+---
+
+## Example: `getUser`
+
+**`api.ts`** — the real implementation
+
+```ts
+export const getUser = async (id: string, signal?: AbortSignal) => {
+  const res = await fetch(`/api/users/${id}`, { signal });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json() as Promise<User>;
+};
+```
+
+**`mock.ts`** — the mock implementation
+
+```ts
+import { delay } from 'data-provider/mock';
+
+export const getUser = (id: string, signal?: AbortSignal) =>
+  delay(
+    () => ({ id, firstName: 'Test', lastName: 'User', role: 'admin' }),
+    { signal, delayMs: 300 }
+  );
+```
+
+**`provider.ts`** — assembled provider
+
+```ts
+import { createSafeProvider } from 'data-provider/data-provider';
+import { Logger } from 'data-provider/logger';
+import * as api from './api';
+import * as mock from './mock';
+
+const logger = new Logger({ prefix: 'getUser' });
+
+export const getUser = createSafeProvider(api.getUser)
+  .andMock(mock.getUser)
+  .andThen((user) => ({
+    ...user,
+    fullName: `${user.firstName} ${user.lastName}`,
+  }))
+  .andCatch((error) => {
+    if (error.name === 'AbortError') {
+      logger.warn('Request was aborted');
+    } else {
+      logger.error('Request failed', error);
+    }
+    throw error;
   });
+```
 
-  // mock.ts
-  export const fetchUser = (id, { signal }) =>
-    mockService.delay(() => ({ id, firstName: "Test", lastName: "User" }), { signal })
+**Usage in a component or service**
 
-  // data-provider.ts
-  export const fetchUser = createProvider(api.fetchUser)
-    .andMock(mock.fetchUser)
-    .andThen(user => ({
-      ...user,
-      fullName: \`\${user.firstName} \${user.lastName}\`
-    }))
-    .andCatch((e) => {
-      if (error instanceof Error && error.name === 'AbortError') {
-        logger.warn('Fetch corrections aborted');
-      } else {
-        logger.error('Fetch corrections was failed:', error);
-      }
-      return Promise.reject(error);
-    })
+```ts
+import { getUser } from './provider';
 
-  const [error, user] = await fetchUser(id);
-`} />
+const controller = new AbortController();
 
+const [error, user] = await getUser('123', controller.signal);
 
+if (error) {
+  // handle error
+} else {
+  console.log(user.fullName); // typed and transformed
+}
 
+// Cancel in-flight request
+controller.abort();
+```
+
+---
+
+## With `createProvider` (throws on error)
+
+```ts
+import { createProvider } from 'data-provider/data-provider';
+
+export const getUser = createProvider(api.getUser)
+  .andMock(mock.getUser)
+  .andThen(normalize)
+  .andFinally(() => analytics.track('getUser'));
+
+try {
+  const user = await getUser('123');
+} catch (error) {
+  // handle
+}
+```
+
+---
+
+## Narrowing error types
+
+Use `as const` to tell TypeScript exactly which errors can occur:
+
+```ts
+class NetworkError extends Error { status: number }
+class NotFoundError extends Error {}
+
+export const getUser = createSafeProvider(
+  api.getUser,
+  [NetworkError, NotFoundError] as const
+);
+
+const [error, user] = await getUser('123');
+
+if (error instanceof NotFoundError) {
+  // redirect to 404
+} else if (error instanceof NetworkError) {
+  // show retry UI, error.status is typed
+}
+```
