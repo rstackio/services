@@ -50,7 +50,10 @@ jobs:
             console.log(total === 0 ? 100 : Math.round((covered / total) * 100));
           ")
           echo "pct=$PCT" >> $GITHUB_OUTPUT
-          echo "color=$([ $PCT -ge 80 ] && echo green || [ $PCT -ge 60 ] && echo yellow || echo red)" >> $GITHUB_OUTPUT
+          if [ "$PCT" -ge 80 ]; then COLOR=green
+          elif [ "$PCT" -ge 60 ]; then COLOR=yellow
+          else COLOR=red; fi
+          echo "color=$COLOR" >> $GITHUB_OUTPUT
 
       - name: Build
         run: pnpm build
