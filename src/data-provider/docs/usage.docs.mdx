@@ -69,7 +69,7 @@ export const logger = new Logger({ prefix: 'user' }); // pass name of module
 ```ts
 import type { UserApi, User } from './models/user.model';
 
-export const normalize = (user: UserApi): User => ({
+export const normalizeUser = (user: UserApi): User => ({
   ...user,
   fullName: `${user.firstName} ${user.lastName}`,
 });
@@ -81,12 +81,12 @@ export const normalize = (user: UserApi): User => ({
 import { createSafeProvider } from '@rstackio/services/data-provider';
 import * as api from './api';
 import * as mock from './mock';
-import { normalize } from './normalize';
+import { normalizeUser } from './normalize';
 import { logger } from '../services/logger.service';
 
 export const getUser = createSafeProvider(api.getUser)
   .andMock(mock.getUser) // TypeScript enforces mock matches the exact signature of api.getUser
-  .andThen(normalize)    // final type is inferred from normalize's return — callers get User, not UserApi
+  .andThen(normalizeUser)    // final type is inferred from normalizeUser's return — callers get User, not UserApi
   .andCatch((error) => {
     if (error.name === 'AbortError') {
       logger.warn('Request was aborted');
@@ -125,7 +125,7 @@ import { createProvider } from '@rstackio/services/data-provider';
 
 export const getUser = createProvider(api.getUser)
   .andMock(mock.getUser)
-  .andThen(normalize)
+  .andThen(normalizeUser)
   .andFinally(() => analytics.track('getUser'));
 
 try {
