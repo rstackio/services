@@ -2,13 +2,30 @@
 
 ## Recommended file structure
 
-Keep each provider's concerns in three files:
+This is a suggested structure — not enforced by the library. The pattern that works well in practice:
 
 ```
-feature/
-  api.ts        ← real async function
-  mock.ts       ← mock using delay()
-  provider.ts   ← createProvider(api).andMock(mock).andThen(...)
+src/
+└── modules/
+    └── user/
+        ├── models/
+        │   └── user.model.ts           ← types and validation schema, API and UI models
+        ├── services/
+        │   └── logger.service.ts       ← module-scoped logger instance
+        └── data-provider/
+            ├── api.ts                  ← real async function
+            ├── mock.ts                 ← mock using delay()
+            ├── normalize.ts            ← pure function to transform API response to UI model
+            ├── provider.ts             ← createSafeProvider(api).andMock(mock).andThen(normalize)
+            └── index.ts                ← export * from './provider'
+```
+
+Consume anywhere in the module:
+
+```ts
+import * as Dp from './data-provider';
+
+const [error, user] = await Dp.getUser(id);
 ```
 
 ---
@@ -18,12 +35,14 @@ feature/
 **`api.ts`** — the real implementation
 
 ```ts
-export const getUser = async (id: string, signal?: AbortSignal) => {
-  const res = await fetch(`/api/users/${id}`, { signal });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json() as Promise<User>;
-};
+import ky from 'ky';
+import { userApiSchema } from '../models/user.model';
+
+export const getUser = (id: string, signal?: AbortSignal) =>
+  ky.get(`/api/users/${id}`, { signal }).json(userApiSchema);
 ```
+
+> `ky` can be extended to add runtime schema validation — keeping individual `api.ts` files clean while ensuring runtime types always match build-time types.
 
 **`mock.ts`** — the mock implementation
 
@@ -32,27 +51,42 @@ import { delay } from '@rstackio/services/mock';
 
 export const getUser = (id: string, signal?: AbortSignal) =>
   delay(
-    () => ({ id, firstName: 'Test', lastName: 'User', role: 'admin' }),
+    () => ({ id, firstName: 'Test', lastName: 'User', role: 'admin' as const }),
     { signal, delayMs: 300 }
   );
+```
+
+**`services/logger.service.ts`** — module-scoped logger instance
+
+```ts
+import { Logger } from '@rstackio/services/logger';
+
+export const logger = new Logger({ prefix: 'user' }); // pass name of module
+```
+
+**`normalize.ts`** — pure transform, easy to test in isolation
+
+```ts
+import type { UserApi, User } from './models/user.model';
+
+export const normalize = (user: UserApi): User => ({
+  ...user,
+  fullName: `${user.firstName} ${user.lastName}`,
+});
 ```
 
 **`provider.ts`** — assembled provider
 
 ```ts
 import { createSafeProvider } from '@rstackio/services/data-provider';
-import { Logger } from '@rstackio/services/logger';
 import * as api from './api';
 import * as mock from './mock';
-
-const logger = new Logger({ prefix: 'getUser' });
+import { normalize } from './normalize';
+import { logger } from '../services/logger.service';
 
 export const getUser = createSafeProvider(api.getUser)
-  .andMock(mock.getUser)
-  .andThen((user) => ({
-    ...user,
-    fullName: `${user.firstName} ${user.lastName}`,
-  }))
+  .andMock(mock.getUser) // TypeScript enforces mock matches the exact signature of api.getUser
+  .andThen(normalize)    // final type is inferred from normalize's return — callers get User, not UserApi
   .andCatch((error) => {
     if (error.name === 'AbortError') {
       logger.warn('Request was aborted');

@@ -3,11 +3,13 @@
 > Minimal TypeScript toolkit for async data fetching —
 > typed errors, chainable transforms, zero-config mocking.
 
-[![npm](https://img.shields.io/npm/v/@rstackio/services)](https://www.npmjs.com/package/@rstackio/services)
-[![CI](https://github.com/rstackio/services/actions/workflows/publish.yml/badge.svg)](https://github.com/rstackio/services/actions/workflows/publish.yml)
-[![coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/rkovalov/c73854c806277dbac2ab2b6936c39518/raw/coverage.json)](https://github.com/rstackio/services/actions/workflows/publish.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/rstackio/services/blob/main/LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-blue)](https://www.typescriptlang.org/)
+<p align="center">
+  <a href="https://www.npmjs.com/package/@rstackio/services"><img src="https://img.shields.io/npm/v/@rstackio/services" alt="npm" /></a>
+  <a href="https://github.com/rstackio/services/actions/workflows/publish.yml"><img src="https://github.com/rstackio/services/actions/workflows/publish.yml/badge.svg" alt="CI" /></a>
+  <a href="https://github.com/rstackio/services/actions/workflows/publish.yml"><img src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/rkovalov/c73854c806277dbac2ab2b6936c39518/raw/coverage.json" alt="coverage" /></a>
+  <a href="https://github.com/rstackio/services/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" /></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.0%2B-blue" alt="TypeScript" /></a>
+</p>
 
 ---
 
@@ -48,20 +50,68 @@ A few guiding principles:
 
 ## 🗂️ File structure
 
-Each feature module owns its data layer in a `data-provider/` folder:
+This is a suggested folder structure — not enforced by the library. Use whatever layout fits your project. The pattern that works well in practice:
 
 ```
 src/
-  modules/
-    user/
-      models/
-        user.ts         ← types and validation schema
-      data-provider/
-        api.ts          ← real async function
-        mock.ts         ← mock using delay()
-        normalize.ts    ← pure function to transform API response
-        provider.ts     ← createProvider(api).andMock(mock).andThen(normalize)
-        index.ts        ← export * from './provider'
+└── modules/
+    └── user/
+        ├── models/
+        │   └── user.model.ts      ← types and validation schema, API and UI models
+        └── data-provider/
+            ├── api.ts             ← real async function
+            ├── mock.ts            ← mock using delay()
+            ├── normalize.ts       ← pure function to transform API response to UI model
+            ├── provider.ts        ← createSafeProvider(api).andMock(mock).andThen(normalize)
+            └── index.ts           ← export * from './provider'
+```
+
+**`api.ts`** — fetch from real endpoint
+```ts
+import ky from 'ky';
+import { userApiSchema } from '../models/user.model';
+
+export const getUser = (id: string, signal?: AbortSignal) =>
+  ky.get(`/api/users/${id}`, { signal }).json(userApiSchema);
+```
+
+> `ky` can be extended to add runtime schema validation — keeping individual `api.ts` files clean while ensuring runtime types always match build-time types.
+
+**`mock.ts`** — simulated response with realistic delay
+```ts
+import { delay } from '@rstackio/services/mock';
+
+export const getUser = (id: string, signal?: AbortSignal) =>
+  delay(() => ({ id, firstName: 'Jane', lastName: 'Doe', role: 'admin' as const }), { signal, delayMs: 300 });
+```
+
+**`normalize.ts`** — pure transform, easy to test in isolation
+```ts
+import type { UserApi, User } from '../models/user.model';
+
+export const normalize = (user: UserApi): User => ({
+  ...user,
+  fullName: `${user.firstName} ${user.lastName}`,
+});
+```
+
+**`provider.ts`** — wires everything together once
+```ts
+import { createSafeProvider } from '@rstackio/services/data-provider';
+import * as api from './api';
+import * as mock from './mock';
+import { normalize } from './normalize';
+
+export const getUser = createSafeProvider(api.getUser)
+  .andMock(mock.getUser) // ✅ mock must match the exact signature of api.getUser
+  .andThen(normalize);   // ✅ final type is inferred from normalize's return type — callers get User, not UserApi
+```
+
+> **Type safety** — `.andMock()` enforces that the mock matches the original signature. `.andThen()` transforms the result type — the caller always sees the output of the last transform, fully inferred with no manual annotations needed.
+
+**`index.ts`** — single public entry point
+```ts
+export * from './provider';
 ```
 
 Consume anywhere in the module:
