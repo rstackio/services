@@ -43,16 +43,6 @@ jobs:
           echo "pct=$PCT" >> $GITHUB_OUTPUT
           echo "color=$([ $PCT -ge 80 ] && echo green || [ $PCT -ge 60 ] && echo yellow || echo red)" >> $GITHUB_OUTPUT
 
-      - name: Update coverage badge
-        uses: schneegans/dynamic-badges-action@v1.7.0
-        with:
-          auth: ${{ secrets.GIST_SECRET }}
-          gistID: ${{ secrets.TEST_COVERAGE_GIST_ID }}
-          filename: coverage.json
-          label: coverage
-          message: ${{ steps.coverage.outputs.pct }}%
-          color: ${{ steps.coverage.outputs.color }}
-
       - name: Build
         run: pnpm build
 
@@ -70,6 +60,17 @@ jobs:
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.RSTACKIO_NPM_TOKEN }}
+
+      - name: Update coverage badge
+        if: steps.publish.outputs.published == 'true'
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: ${{ secrets.TEST_COVERAGE_GIST_ID }}
+          filename: coverage.json
+          label: coverage
+          message: ${{ steps.coverage.outputs.pct }}%
+          color: ${{ steps.coverage.outputs.color }}
 
       - name: Push git tag
         if: steps.publish.outputs.published == 'true'
