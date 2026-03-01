@@ -65,6 +65,9 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Test build exports
+        run: pnpm test:build
+
       - name: Apply changesets
         id: version
         run: |
