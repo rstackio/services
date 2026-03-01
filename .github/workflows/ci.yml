@@ -33,7 +33,7 @@ jobs:
           echo "CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | tr '\n' ' ')" >> $GITHUB_ENV
 
       - name: Lint and Format
-        run: pnpm exec biome check --diagnostic-level=error --no-errors-on-unmatched $CHANGED
+        run: pnpm format:lint $CHANGED
 
       - name: Test
         run: pnpm test:related $CHANGED
