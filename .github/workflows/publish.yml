@@ -39,7 +39,16 @@ jobs:
       - name: Parse coverage
         id: coverage
         run: |
-          PCT=$(node -e "const c=require('./coverage/coverage-summary.json');console.log(Math.round(c.total.lines.pct))")
+          PCT=$(node -e "
+            const data = require('./coverage/coverage-final.json');
+            let total = 0, covered = 0;
+            for (const file of Object.values(data)) {
+              const stmts = Object.values(file.s);
+              total += stmts.length;
+              covered += stmts.filter(v => v > 0).length;
+            }
+            console.log(total === 0 ? 100 : Math.round((covered / total) * 100));
+          ")
           echo "pct=$PCT" >> $GITHUB_OUTPUT
           echo "color=$([ $PCT -ge 80 ] && echo green || [ $PCT -ge 60 ] && echo yellow || echo red)" >> $GITHUB_OUTPUT
 
