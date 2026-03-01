@@ -1,7 +1,7 @@
 /**
  * Smoke tests that run against the compiled dist/ output.
  * Verifies every public module is importable and all expected exports are present.
- * Run after `pnpm build` via `pnpm test:dist`.
+ * Run after `pnpm build` via `pnpm test:build`.
  */
 
 describe('@rstackio/services/safe', () => {
