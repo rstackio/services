@@ -74,7 +74,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.RSTACKIO_NPM_TOKEN }}
 
       - name: Update coverage badge
-        # if: steps.publish.outputs.published == 'true'
+        if: steps.publish.outputs.published == 'true'
         continue-on-error: true
         uses: schneegans/dynamic-badges-action@v1.7.0
         with:
