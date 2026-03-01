@@ -54,6 +54,7 @@
   ],
   "scripts": {
     "build": "rslib build",
+    "changeset": "changeset",
     "check:deps": "knip",
     "check:types": "tsc --noEmit",
     "dev": "rslib build --watch",
@@ -62,6 +63,7 @@
     "preinstall": "npx only-allow pnpm",
     "lint": "biome lint --write",
     "prepare": "simple-git-hooks",
+    "release": "pnpm publish --access public --provenance --no-git-checks",
     "test": "rstest run",
     "test:coverage": "rstest run --coverage",
     "test:related": "rstest run --passWithNoTests",
@@ -82,6 +84,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.4",
+    "@changesets/changelog-github": "^0.5.2",
+    "@changesets/cli": "^2.29.8",
     "@commitlint/cli": "^20.4.2",
     "@commitlint/config-conventional": "^20.4.2",
     "@rslib/core": "^0.19.6",
