@@ -77,6 +77,12 @@ jobs:
             echo "version=$PKG_VERSION" >> $GITHUB_OUTPUT
           fi
 
+      - name: Publish to npm
+        if: steps.version.outputs.changed == 'true'
+        run: pnpm release
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.RSTACKIO_NPM_TOKEN }}
+
       - name: Commit version bump
         if: steps.version.outputs.changed == 'true'
         run: |
@@ -85,12 +91,6 @@ jobs:
           git add .
           git commit -m "chore: release v${{ steps.version.outputs.version }}"
           git push
-
-      - name: Publish to npm
-        if: steps.version.outputs.changed == 'true'
-        run: pnpm release
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.RSTACKIO_NPM_TOKEN }}
 
       - name: Create GitHub release
         if: steps.version.outputs.changed == 'true'

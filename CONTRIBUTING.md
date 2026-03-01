@@ -5,7 +5,7 @@
 ```sh
 pnpm install
 pnpm test:watch   # run tests in watch mode
-pnpm dev          # build dist
+pnpm dev          # watch mode — rebuilds on file changes
 ```
 
 ## Making a PR
@@ -58,6 +58,6 @@ CI runs types, deps, linting, tests, and the changeset check automatically.
 
 Releases are fully automated — you don't need to bump versions or publish manually.
 
-When your PR is merged to `main`:
-1. The CI pipeline detects pending changesets and opens a **"Version Packages"** PR that bumps the version and generates `CHANGELOG.md`.
-2. When that PR is merged, the package is published to npm automatically.
+When your PR is merged to `main`, the publish pipeline runs automatically:
+1. It applies all pending changesets — bumps the version in `package.json` and generates `CHANGELOG.md`.
+2. Commits the version bump directly to `main` and publishes the package to npm.
