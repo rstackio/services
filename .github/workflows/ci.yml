@@ -29,24 +29,7 @@ jobs:
         run: pnpm format:lint
 
       - name: Test
-        run: pnpm test:coverage
-
-      - name: Parse coverage
-        id: coverage
-        run: |
-          PCT=$(node -e "const c=require('./coverage/coverage-summary.json');console.log(Math.round(c.total.lines.pct))")
-          echo "pct=$PCT" >> $GITHUB_OUTPUT
-          echo "color=$([ $PCT -ge 80 ] && echo green || [ $PCT -ge 60 ] && echo yellow || echo red)" >> $GITHUB_OUTPUT
-
-      - name: Update coverage badge
-        uses: schneegans/dynamic-badges-action@v1.7.0
-        with:
-          auth: ${{ secrets.GIST_SECRET }}
-          gistID: ${{ secrets.TEST_COVERAGE_GIST_ID }}
-          filename: coverage.json
-          label: coverage
-          message: ${{ steps.coverage.outputs.pct }}%
-          color: ${{ steps.coverage.outputs.color }}
+        run: pnpm test
 
       - name: Build
         run: pnpm build
