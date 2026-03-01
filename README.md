@@ -5,7 +5,6 @@
 
 [![npm](https://img.shields.io/npm/v/@rstackio/services)](https://www.npmjs.com/package/@rstackio/services)
 [![CI](https://github.com/rstackio/services/actions/workflows/publish.yml/badge.svg)](https://github.com/rstackio/services/actions/workflows/publish.yml)
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/rstackio/services/blob/main/LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-blue)](https://www.typescriptlang.org/)
 
