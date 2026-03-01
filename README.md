@@ -138,7 +138,7 @@ Requires **TypeScript 5.0+** with `strict: true`.
 
 ---
 
-## 🛠️ Development
+## 🛠️ Contributing
 
 ```sh
 pnpm install
@@ -146,6 +146,8 @@ pnpm test          # run tests
 pnpm test:watch    # watch mode
 pnpm build         # build dist
 ```
+
+See [CONTRIBUTING.md](https://github.com/rstackio/services/blob/main/CONTRIBUTING.md) for the full guide, including how to add a changeset to your PR.
 
 ---
 

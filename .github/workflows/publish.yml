@@ -9,12 +9,16 @@ jobs:
     name: Publish
     runs-on: ubuntu-latest
     environment: Publish
+    # skip when the pipeline itself pushes the version bump commit
+    if: "!contains(github.event.head_commit.message, 'chore: release')"
     permissions:
-      contents: write # required for pushing git tags
+      contents: write # required for pushing commits, tags and creating GitHub releases
       id-token: write # required for npm provenance
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
 
@@ -61,23 +65,45 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Publish if new version
-        id: publish
+      - name: Apply changesets
+        id: version
         run: |
-          PKG_VERSION=$(node -p "require('./package.json').version")
-          if npm view @rstackio/services@$PKG_VERSION version > /dev/null 2>&1; then
-            echo "Version $PKG_VERSION already published, skipping"
-            echo "published=false" >> $GITHUB_OUTPUT
+          pnpm changeset version
+          if git diff --quiet package.json; then
+            echo "changed=false" >> $GITHUB_OUTPUT
           else
-            pnpm publish --no-git-checks --access public --provenance
-            echo "published=true" >> $GITHUB_OUTPUT
+            PKG_VERSION=$(node -p "require('./package.json').version")
+            echo "changed=true" >> $GITHUB_OUTPUT
             echo "version=$PKG_VERSION" >> $GITHUB_OUTPUT
           fi
+
+      - name: Commit version bump
+        if: steps.version.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore: release v${{ steps.version.outputs.version }}"
+          git push
+
+      - name: Publish to npm
+        if: steps.version.outputs.changed == 'true'
+        run: pnpm release
         env:
           NODE_AUTH_TOKEN: ${{ secrets.RSTACKIO_NPM_TOKEN }}
 
+      - name: Create GitHub release
+        if: steps.version.outputs.changed == 'true'
+        run: |
+          VERSION="v${{ steps.version.outputs.version }}"
+          git tag $VERSION
+          git push origin $VERSION
+          gh release create $VERSION --generate-notes --title "$VERSION"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Update coverage badge
-        if: steps.publish.outputs.published == 'true'
+        if: steps.version.outputs.changed == 'true'
         continue-on-error: true
         uses: schneegans/dynamic-badges-action@v1.7.0
         with:
@@ -87,9 +113,3 @@ jobs:
           label: coverage
           message: ${{ steps.coverage.outputs.pct }}%
           color: ${{ steps.coverage.outputs.color }}
-
-      - name: Push git tag
-        if: steps.publish.outputs.published == 'true'
-        run: |
-          git tag "v${{ steps.publish.outputs.version }}"
-          git push origin "v${{ steps.publish.outputs.version }}"
