@@ -11,6 +11,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
 
@@ -30,7 +32,7 @@ jobs:
 
       - name: Resolve changed files
         run: |
-          git fetch origin ${{ github.base_ref }} --depth=1
+          set -eo pipefail  # fail fast: exit on error (-e) and propagate pipe failures (-o pipefail)
           echo "CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | tr '\n' ' ')" >> $GITHUB_ENV
 
       - name: Lint and Format
