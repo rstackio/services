@@ -24,7 +24,7 @@ pnpm changeset
 
 This opens an interactive prompt:
 
-```
+```text
 🦋  What kind of change is this for @rstackio/services?
   ❯ patch  — bug fix, dependency update, internal refactor
     minor  — new backwards-compatible feature
@@ -37,7 +37,7 @@ Pick the bump type, write a short description of what changed and why (this beco
 
 This repo uses [Conventional Commits](https://www.conventionalcommits.org/):
 
-```
+```text
 <type>(<scope>): <description>
 
 feat(data-provider): add andFinally() chain method
