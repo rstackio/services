@@ -11,6 +11,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
 
@@ -25,11 +27,20 @@ jobs:
       - name: Check types
         run: pnpm check:types
 
+      - name: Check deps
+        run: pnpm check:deps
+
+      - name: Resolve changed files
+        run: |
+          set -eo pipefail  # fail fast: exit on error (-e) and propagate pipe failures (-o pipefail)
+          echo "CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | tr '\n' ' ')" >> $GITHUB_ENV
+
       - name: Lint and Format
-        run: pnpm format:lint
+        run: pnpm format:lint $CHANGED
 
       - name: Test
-        run: pnpm test
+        # run: pnpm test:related $CHANGED // rstest don't understand the deps graph
+        run: pnpm test:coverage
 
       - name: Build
         run: pnpm build

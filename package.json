@@ -54,10 +54,11 @@
   ],
   "scripts": {
     "build": "rslib build",
+    "check:deps": "knip",
     "check:types": "tsc --noEmit",
     "dev": "rslib build --watch",
     "format": "biome format --write",
-    "format:lint": "biome check --diagnostic-level=error",
+    "format:lint": "biome check --diagnostic-level=error --no-errors-on-unmatched",
     "preinstall": "npx only-allow pnpm",
     "lint": "biome lint --write",
     "prepare": "simple-git-hooks",
@@ -73,10 +74,10 @@
   "lint-staged": {
     "package.json": [
       "sort-package-json",
-      "biome check --diagnostic-level=error --write --no-errors-on-unmatched"
+      "pnpm format:lint --write"
     ],
     "*.{js,ts,mts,tsx,css,md,json}": [
-      "biome check --diagnostic-level=error --write --no-errors-on-unmatched"
+      "pnpm format:lint --write"
     ]
   },
   "devDependencies": {
@@ -89,6 +90,7 @@
     "@rstest/coverage-istanbul": "^0.2.1",
     "@types/node": "^24.10.13",
     "happy-dom": "^20.7.0",
+    "knip": "^5.85.0",
     "lint-staged": "^16.3.0",
     "simple-git-hooks": "^2.13.1",
     "sort-package-json": "^3.6.1",
