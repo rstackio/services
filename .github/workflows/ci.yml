@@ -39,7 +39,8 @@ jobs:
         run: pnpm format:lint $CHANGED
 
       - name: Test
-        run: pnpm test:related $CHANGED
+        # run: pnpm test:related $CHANGED // rstest don't understand the deps graph
+        run: pnpm test
 
       - name: Build
         run: pnpm build
