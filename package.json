@@ -58,7 +58,7 @@
     "check:types": "tsc --noEmit",
     "dev": "rslib build --watch",
     "format": "biome format --write",
-    "format:lint": "biome check --diagnostic-level=error",
+    "format:lint": "biome check --diagnostic-level=error --no-errors-on-unmatched",
     "preinstall": "npx only-allow pnpm",
     "lint": "biome lint --write",
     "prepare": "simple-git-hooks",
@@ -74,10 +74,10 @@
   "lint-staged": {
     "package.json": [
       "sort-package-json",
-      "biome check --diagnostic-level=error --write --no-errors-on-unmatched"
+      "pnpm format:lint --write"
     ],
     "*.{js,ts,mts,tsx,css,md,json}": [
-      "biome check --diagnostic-level=error --write --no-errors-on-unmatched"
+      "pnpm format:lint --write"
     ]
   },
   "devDependencies": {

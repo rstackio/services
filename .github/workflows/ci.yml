@@ -28,11 +28,15 @@ jobs:
       - name: Check deps
         run: pnpm check:deps
 
+      - name: Resolve changed files
+        run: |
+          echo "CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | tr '\n' ' ')" >> $GITHUB_ENV
+
       - name: Lint and Format
-        run: pnpm format:lint
+        run: pnpm exec biome check --diagnostic-level=error --no-errors-on-unmatched $CHANGED
 
       - name: Test
-        run: pnpm test
+        run: pnpm test:related $CHANGED
 
       - name: Build
         run: pnpm build
