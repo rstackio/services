@@ -54,6 +54,7 @@
   ],
   "scripts": {
     "build": "rslib build",
+    "check:deps": "knip",
     "check:types": "tsc --noEmit",
     "dev": "rslib build --watch",
     "format": "biome format --write",
@@ -89,6 +90,7 @@
     "@rstest/coverage-istanbul": "^0.2.1",
     "@types/node": "^24.10.13",
     "happy-dom": "^20.7.0",
+    "knip": "^5.85.0",
     "lint-staged": "^16.3.0",
     "simple-git-hooks": "^2.13.1",
     "sort-package-json": "^3.6.1",

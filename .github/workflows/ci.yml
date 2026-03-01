@@ -25,6 +25,9 @@ jobs:
       - name: Check types
         run: pnpm check:types
 
+      - name: Check deps
+        run: pnpm check:deps
+
       - name: Lint and Format
         run: pnpm format:lint
 

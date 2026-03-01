@@ -1,4 +1,4 @@
-export const STORE_KEYS = {
+const STORE_KEYS = {
   isMockEnabled: 'dp:mock.enabled',
 } as const;
 
