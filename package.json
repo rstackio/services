@@ -65,6 +65,7 @@
     "prepare": "simple-git-hooks",
     "release": "pnpm publish --access public --provenance --no-git-checks",
     "test": "rstest run",
+    "test:build": "rstest run --config rstest.build.config.ts",
     "test:coverage": "rstest run --coverage",
     "test:related": "rstest run --passWithNoTests",
     "test:watch": "rstest watch"
