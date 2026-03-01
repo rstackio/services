@@ -62,7 +62,7 @@ src/
             ├── api.ts             ← real async function
             ├── mock.ts            ← mock using delay()
             ├── normalize.ts       ← pure function to transform API response to UI model
-            ├── provider.ts        ← createSafeProvider(api).andMock(mock).andThen(normalize)
+            ├── provider.ts        ← wires api, mock and transforms together; also a natural place for React Query options
             └── index.ts           ← export * from './provider'
 ```
 

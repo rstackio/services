@@ -23,7 +23,8 @@
     "type-safe",
     "typescript",
     "logger",
-    "log"
+    "log",
+    "react-query"
   ],
   "homepage": "https://github.com/rstackio/services#readme",
   "bugs": {
