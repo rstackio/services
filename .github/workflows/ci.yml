@@ -40,7 +40,7 @@ jobs:
 
       - name: Test
         # run: pnpm test:related $CHANGED // rstest don't understand the deps graph
-        run: pnpm test
+        run: pnpm test:coverage
 
       - name: Build
         run: pnpm build

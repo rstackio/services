@@ -7,5 +7,11 @@ export default defineConfig({
   testEnvironment: 'happy-dom',
   coverage: {
     provider: 'istanbul',
+    thresholds: {
+      statements: 80,
+      functions: 80,
+      branches: 80,
+      lines: 80,
+    },
   },
 });
